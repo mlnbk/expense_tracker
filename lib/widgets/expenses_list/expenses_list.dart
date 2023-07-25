@@ -22,6 +22,9 @@ class ExpensesList extends StatelessWidget {
         onDismissed: (direction) {
           onDismiss(expenses[index]);
         },
+        background: Container(
+          color: Theme.of(context).colorScheme.error.withOpacity(0.8),
+        ),
         child: ExpenseItem(expenses[index]),
       ),
     );
