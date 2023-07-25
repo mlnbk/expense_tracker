@@ -1,4 +1,5 @@
 import 'package:expense_tracker/widgets/expenses_list/expenses_list.dart';
+import 'package:expense_tracker/widgets/new_expense.dart';
 import 'package:flutter/material.dart';
 
 import 'package:expense_tracker/models/expense.dart';
@@ -13,42 +14,74 @@ class Expenses extends StatefulWidget {
 }
 
 class _ExpensesState extends State<Expenses> {
-  final List<Expense> _registeredExpenses = [
-    Expense(
-        title: 'Todo',
-        amount: 19.99,
-        date: DateTime.now(),
-        category: Category.other),
-    Expense(
-        title: 'Todo 1',
-        amount: 29.99,
-        date: DateTime.now(),
-        category: Category.work),
-    Expense(
-        title: 'Todo 2',
-        amount: 39.99,
-        date: DateTime.now(),
-        category: Category.leisure),
-    Expense(
-        title: 'Todo 3',
-        amount: 9.99,
-        date: DateTime.now(),
-        category: Category.food),
-    Expense(
-        title: 'Todo 4',
-        amount: 49.99,
-        date: DateTime.now(),
-        category: Category.other),
-  ];
+  final List<Expense> _registeredExpenses = [];
+
+  void _openAddExpenseModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: NewExpense(onSubmit: _addExpense),
+      ),
+    );
+  }
+
+  void _addExpense(Expense expense) {
+    setState(() {
+      _registeredExpenses.add(expense);
+    });
+  }
+
+  void _removeExpense(Expense expense) {
+    final expenseIndex = _registeredExpenses.indexOf(expense);
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _registeredExpenses.insert(expenseIndex, expense);
+            });
+          },
+        ),
+        content: const Text('Expense deleted.'),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    Widget fallback = const Center(
+      child: Text('No expenses yet. Add some now!'),
+    );
+
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('ExpenseTracker'),
+        actions: [
+          IconButton(
+            onPressed: _openAddExpenseModal,
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           const Text('Chart'),
           Expanded(
-            child: ExpensesList(expenses: _registeredExpenses),
+            child: _registeredExpenses.isNotEmpty
+                ? ExpensesList(
+                    expenses: _registeredExpenses,
+                    onDismiss: _removeExpense,
+                  )
+                : fallback,
           ),
         ],
       ),
