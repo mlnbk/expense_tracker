@@ -21,6 +21,7 @@ class _ExpensesState extends State<Expenses> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => Padding(
         padding:
             EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -59,9 +60,23 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     Widget fallback = const Center(
       child: Text('No expenses yet. Add some now!'),
     );
+    List<Widget> content = [
+      Expanded(
+        child: Chart(expenses: _registeredExpenses),
+      ),
+      Expanded(
+        child: _registeredExpenses.isNotEmpty
+            ? ExpensesList(
+                expenses: _registeredExpenses,
+                onDismiss: _removeExpense,
+              )
+            : fallback,
+      ),
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -73,19 +88,7 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Chart(expenses: _registeredExpenses),
-          Expanded(
-            child: _registeredExpenses.isNotEmpty
-                ? ExpensesList(
-                    expenses: _registeredExpenses,
-                    onDismiss: _removeExpense,
-                  )
-                : fallback,
-          ),
-        ],
-      ),
+      body: width < 600 ? Column(children: content) : Row(children: content),
     );
   }
 }
